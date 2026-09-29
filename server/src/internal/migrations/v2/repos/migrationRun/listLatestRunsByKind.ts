@@ -1,7 +1,6 @@
 import {
 	ACTIVE_MIGRATION_RUN_STATUSES,
 	type MigrationRun,
-	MigrationRunStatus,
 	migrationRuns,
 } from "@autumn/shared";
 import {
@@ -37,7 +36,7 @@ const isUnscopedLive = and(
 
 /**
  * One run per (migration, kind): the active or latest started Run All, and
- * the latest successfully finished dry run and scoped live run.
+ * the latest finished dry run and scoped live run, whatever their outcome.
  */
 export const listLatestRunsByKind = async ({
 	ctx,
@@ -66,10 +65,7 @@ export const listLatestRunsByKind = async ({
 					),
 					and(
 						isNotNull(migrationRuns.finished_at),
-						inArray(migrationRuns.status, [
-							MigrationRunStatus.Succeeded,
-							MigrationRunStatus.NoChanges,
-						]),
+						sql`${runKind} <> 'run_all'`,
 					),
 				),
 			),

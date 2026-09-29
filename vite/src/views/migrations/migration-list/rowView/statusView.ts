@@ -2,6 +2,7 @@ import type {
 	MigrationListActivityKind,
 	MigrationListItemCounts,
 	MigrationListSummary,
+	MigrationRunStatus,
 	MigrationStatus,
 } from "@autumn/shared";
 import type { StatusTone } from "@autumn/ui";
@@ -59,7 +60,7 @@ export type StatusView = {
 		when: string;
 		error: string | null;
 		legend: Segment[];
-	} | null;
+	};
 };
 
 type RunProgress = {
@@ -132,6 +133,22 @@ const draftSegments = (summary: MigrationListSummary): Segment[] => {
 	return [];
 };
 
+const PREVIEW_OUTCOMES: Record<MigrationRunStatus, string> = {
+	queued: "✓",
+	running: "✓",
+	succeeded: "✓",
+	no_changes: "✓",
+	failed: "failed",
+	canceled: "canceled",
+};
+
+const draftDetail = (summary: MigrationListSummary): string | undefined => {
+	const { latest_dry_run: dryRun, latest_sample: sample } = summary;
+	if (dryRun) return `· dry run ${PREVIEW_OUTCOMES[dryRun.status]}`;
+	if (sample) return `· sample ${PREVIEW_OUTCOMES[sample.status]}`;
+	return undefined;
+};
+
 type Pill = Pick<StatusView, "ring" | "chip"> & {
 	track: keyof typeof BAR_TRACKS;
 };
@@ -147,14 +164,7 @@ const PILLS: Record<
 > = {
 	draft: ({ summary }) => ({
 		ring: { tone: "neutral", fraction: 0 },
-		chip: chip(
-			"Draft",
-			summary.latest_dry_run
-				? "· dry run ✓"
-				: summary.latest_sample
-					? "· sample ✓"
-					: undefined,
-		),
+		chip: chip("Draft", draftDetail(summary)),
 		track: "preview",
 	}),
 	waiting: ({ summary }) => ({
@@ -256,18 +266,15 @@ export const deriveStatusView = ({
 			track,
 			segments: visibleSegments,
 		},
-		card:
-			legend.length > 0
-				? {
-						status,
-						label: pill.chip.label,
-						when: describeWhen({ summary, now }),
-						error:
-							status === "failed"
-								? (summary.latest_run?.error_message ?? null)
-								: null,
-						legend,
-					}
-				: null,
+		card: {
+			status,
+			label: pill.chip.label,
+			when: describeWhen({ summary, now }),
+			error:
+				status === "failed"
+					? (summary.latest_run?.error_message ?? null)
+					: null,
+			legend,
+		},
 	};
 };

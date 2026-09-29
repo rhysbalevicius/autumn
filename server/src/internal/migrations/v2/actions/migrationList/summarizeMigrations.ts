@@ -159,6 +159,7 @@ const summarizeMigration = ({
 		latest_dry_run:
 			dryRun?.finished_at && dryCounts
 				? {
+						status: dryRun.status,
 						finished_at: dryRun.finished_at,
 						previewed: dryCounts.total,
 						would_change: dryCounts.succeeded,
@@ -166,7 +167,11 @@ const summarizeMigration = ({
 					}
 				: null,
 		latest_sample: sample?.finished_at
-			? { size: countsForRun(sample).total, finished_at: sample.finished_at }
+			? {
+					status: sample.status,
+					size: countsForRun(sample).total,
+					finished_at: sample.finished_at,
+				}
 			: null,
 		queue_position:
 			runAll?.status === MigrationRunStatus.Queued

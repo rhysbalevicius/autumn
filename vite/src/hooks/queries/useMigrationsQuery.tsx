@@ -7,6 +7,7 @@ import type {
 } from "@autumn/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryKeyFactory } from "@/hooks/common/useQueryKeyFactory";
+import { ACTIVE_POLL_MS } from "@/hooks/queries/useMigrationRunsQuery";
 import { useAxiosInstance } from "@/services/useAxiosInstance";
 
 export type MigrationWithRunInfo = Migration & {
@@ -48,6 +49,13 @@ export const useMigrationsQuery = () => {
 			}>("/migrations.list");
 			return data;
 		},
+		refetchInterval: (query) =>
+			query.state.data?.list.some(
+				(migration) =>
+					migration.status === "waiting" || migration.status === "running",
+			)
+				? ACTIVE_POLL_MS
+				: false,
 	});
 
 	const invalidate = () => queryClient.invalidateQueries({ queryKey });

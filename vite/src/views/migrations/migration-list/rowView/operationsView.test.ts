@@ -111,6 +111,32 @@ test("added and removed items use the feature's tile", () => {
 	expect(result?.extraCount).toBe(2);
 });
 
+test("deprecated item updates and feature-less removals still name their target", () => {
+	expect(
+		view([
+			{
+				type: "update_plan",
+				plan_filter: { plan_id: "pro" },
+				customize: {
+					update_items: [{ filter: { feature_id: "seats" }, included: 10 }],
+					remove_items: [{ billing_method: "usage_based", interval: "month" }],
+				},
+			},
+		])?.modifications.map(({ sign, chip }) => ({
+			sign,
+			label: chip.label,
+			details: chip.details,
+		})),
+	).toEqual([
+		{ sign: "change", label: "Seats", details: ["→ 10 included"] },
+		{
+			sign: "remove",
+			label: "Usage-based items · month",
+			details: ["removed"],
+		},
+	]);
+});
+
 test("a customized license shows as a blue ticket chip", () => {
 	expect(
 		view([

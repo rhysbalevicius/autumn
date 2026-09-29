@@ -292,6 +292,7 @@ export const fixtureMigrations: MigrationWithRunInfo[] = [
 		runSummary: summary({
 			customer_count: 1020,
 			latest_dry_run: {
+				status: "succeeded",
 				finished_at: on({ day: 25, minute: 14 }),
 				previewed: 60,
 				would_change: 57,
@@ -310,7 +311,11 @@ export const fixtureMigrations: MigrationWithRunInfo[] = [
 		noBillingChanges: true,
 		runSummary: summary({
 			customer_count: 3120,
-			latest_sample: { size: 10, finished_at: on({ day: 24 }) },
+			latest_sample: {
+				status: "succeeded",
+				size: 10,
+				finished_at: on({ day: 24 }),
+			},
 			last_activity: { kind: "sample", at: on({ day: 24 }) },
 		}),
 	}),

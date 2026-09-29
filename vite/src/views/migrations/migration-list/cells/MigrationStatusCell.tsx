@@ -27,7 +27,7 @@ function SegmentedBar({ bar }: { bar: StatusView["bar"] }) {
 	);
 }
 
-function StatusCard({ card }: { card: NonNullable<StatusView["card"]> }) {
+function StatusCard({ card }: { card: StatusView["card"] }) {
 	return (
 		<>
 			<div className="flex items-center gap-2">
@@ -41,7 +41,7 @@ function StatusCard({ card }: { card: NonNullable<StatusView["card"]> }) {
 					{card.error}
 				</span>
 			)}
-			<PopoverSeparator />
+			{card.legend.length > 0 && <PopoverSeparator />}
 			{card.legend.map((segment) => (
 				<div
 					key={segment.kind}
@@ -75,13 +75,9 @@ export function MigrationStatusCell({ view }: { view: MigrationRowView }) {
 
 	return (
 		<div className="flex min-w-0 items-center gap-2.5">
-			{status.card ? (
-				<CellHoverCard trigger={pill}>
-					<StatusCard card={status.card} />
-				</CellHoverCard>
-			) : (
-				pill
-			)}
+			<CellHoverCard trigger={pill}>
+				<StatusCard card={status.card} />
+			</CellHoverCard>
 			<SegmentedBar bar={status.bar} />
 		</div>
 	);

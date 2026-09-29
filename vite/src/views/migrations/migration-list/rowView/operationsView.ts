@@ -1,5 +1,6 @@
 import {
 	type AddPlanOp,
+	BillingMethod,
 	formatInterval,
 	type Operations,
 	type UpdatePlanOp,
@@ -28,6 +29,32 @@ export type OperationsView = {
 
 type Customize = NonNullable<UpdatePlanOp["customize"]>;
 type AddItem = NonNullable<Customize["add_items"]>[number];
+type UpdateItem = NonNullable<Customize["update_items"]>[number];
+type ItemFilter = UpdateItem["filter"];
+
+const BILLING_METHOD_LABELS: Record<string, string> = {
+	[BillingMethod.Prepaid]: "Prepaid",
+	[BillingMethod.UsageBased]: "Usage-based",
+};
+
+const itemFilterLabel = (filter: ItemFilter): string => {
+	const method = filter.billing_method
+		? BILLING_METHOD_LABELS[filter.billing_method]
+		: "All";
+	return filter.interval
+		? `${method} items · ${filter.interval}`
+		: `${method} items`;
+};
+
+const updateItemDetail = (item: UpdateItem): string => {
+	const parts = [
+		item.included === undefined
+			? null
+			: `→ ${item.included.toLocaleString("en-US")} included`,
+		item.interval ? `resets ${item.interval}` : null,
+	].filter((part) => part !== null);
+	return parts.length > 0 ? parts.join(", ") : "updated";
+};
 
 const perInterval = (interval: string | undefined): string => {
 	if (!interval) return "";
@@ -97,9 +124,13 @@ const updatePlanModifications = ({
 	catalog: MigrationCatalog;
 }): ModificationView[] => {
 	const customize = op.customize;
-	const featureChip = (featureId: string | undefined, detail: string) => {
-		const feature = catalog.feature(featureId ?? "");
-		return { label: feature.name, tile: feature.tile, details: [detail] };
+	const itemChip = (filter: ItemFilter, detail: string) => {
+		const feature = catalog.feature(filter.feature_id ?? "");
+		return {
+			label: filter.feature_id ? feature.name : itemFilterLabel(filter),
+			tile: feature.tile,
+			details: [detail],
+		};
 	};
 	return [
 		...(op.version === undefined
@@ -128,11 +159,15 @@ const updatePlanModifications = ({
 		})),
 		...(customize?.add_items ?? []).map((item) => ({
 			sign: "add" as const,
-			chip: featureChip(item.feature_id, addItemDetail(item)),
+			chip: itemChip(item, addItemDetail(item)),
+		})),
+		...(customize?.update_items ?? []).map((item) => ({
+			sign: "change" as const,
+			chip: itemChip(item.filter, updateItemDetail(item)),
 		})),
 		...(customize?.remove_items ?? []).map((item) => ({
 			sign: "remove" as const,
-			chip: featureChip(item.feature_id, "removed"),
+			chip: itemChip(item, "removed"),
 		})),
 	];
 };

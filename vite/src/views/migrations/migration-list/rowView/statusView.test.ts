@@ -61,7 +61,13 @@ test("drafts show dry run, sample, or nothing", () => {
 		track: "preview",
 		segments: [],
 	});
-	expect(statusOf("migration-a7k").card).toBeNull();
+	expect(statusOf("migration-a7k").card).toEqual({
+		status: "draft",
+		label: "Draft",
+		when: "Created Sep 27, 10:00",
+		error: null,
+		legend: [],
+	});
 	expect(pill("migration-growth-annual").detail).toBeUndefined();
 
 	const dry = statusOf("migration-starter-dry");
@@ -87,6 +93,7 @@ test("a dry run where few customers would change keeps the unchanged rest in the
 			customer_count: 100,
 			latest_run: null,
 			latest_dry_run: {
+				status: "succeeded",
 				finished_at: FIXTURE_NOW,
 				previewed: 100,
 				would_change: 1,
@@ -103,6 +110,28 @@ test("a dry run where few customers would change keeps the unchanged rest in the
 		{ kind: "untouched", value: 99 },
 	]);
 	expect(view.card?.legend).toEqual([{ kind: "would_change", value: 1 }]);
+});
+
+test("a failed latest dry run reads as failed, not done", () => {
+	const view = deriveStatusView({
+		status: "draft",
+		summary: {
+			customer_count: 10,
+			latest_run: null,
+			latest_dry_run: {
+				status: "failed",
+				finished_at: FIXTURE_NOW,
+				previewed: 4,
+				would_change: 2,
+				would_fail: 2,
+			},
+			latest_sample: null,
+			queue_position: null,
+			last_activity: { kind: "dry_run", at: FIXTURE_NOW },
+		},
+		now: FIXTURE_NOW,
+	});
+	expect(view.chip).toEqual({ label: "Draft", details: ["· dry run failed"] });
 });
 
 test("completed is blue when clean and amber with the failed count", () => {
