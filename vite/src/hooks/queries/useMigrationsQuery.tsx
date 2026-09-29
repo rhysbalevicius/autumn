@@ -1,6 +1,7 @@
 import type {
 	Migration,
 	MigrationFilter,
+	MigrationListSummary,
 	MigrationStatus,
 	Operations,
 } from "@autumn/shared";
@@ -14,6 +15,7 @@ export type MigrationWithRunInfo = Migration & {
 	has_live_runs: boolean;
 	/** Whether a plain run of this migration takes the batch lane. */
 	batch_eligible: boolean;
+	summary: MigrationListSummary;
 };
 export type RetryableMigrationItemRunStatus = "failed" | "skipped";
 
