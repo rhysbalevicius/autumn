@@ -23,7 +23,9 @@ import {
 import { logSetPlansContext } from "./logs/logSetPlansContext";
 import { setupSetPlansBillingContext } from "./setup/setupSetPlansBillingContext";
 import type { SetPlansResult } from "./types/setPlansResult";
+import { buildReplacedSubscriptionAction } from "./utils/buildReplacedSubscriptionAction";
 import { ensureFreePhaseStripeProducts } from "./utils/ensureFreePhaseStripeProducts";
+import { expireReplacedPendingCustomerProducts } from "./utils/expireReplacedPendingCustomerProducts";
 import { persistSetPlansSchedule } from "./utils/persistSetPlansSchedule";
 
 /** Set a customer's plans: bill the immediate phase and schedule Autumn-managed future phases. */
@@ -72,12 +74,19 @@ export const setPlans = async ({
 	}
 
 	// 3. Evaluate Stripe billing plan
-	const stripeBillingPlan = await evaluateStripeBillingPlan({
-		ctx,
-		billingContext,
-		autumnBillingPlan,
-		checkoutMode: billingContext.checkoutMode,
-	});
+	const stripeBillingPlan = {
+		...(await evaluateStripeBillingPlan({
+			ctx,
+			billingContext,
+			autumnBillingPlan,
+			checkoutMode: billingContext.checkoutMode,
+		})),
+		replacedSubscriptionAction: billingContext.skipBillingChanges
+			? undefined
+			: buildReplacedSubscriptionAction({
+					replacedStripeSubscription: billingContext.replacedStripeSubscription,
+				}),
+	};
 	logStripeBillingPlan({ ctx, stripeBillingPlan, billingContext });
 
 	const billingPlan: BillingPlan = {
@@ -158,6 +167,15 @@ export const setPlans = async ({
 
 	if (scheduleDeferredToCheckout) {
 		return { ...result, billingResult };
+	}
+
+	if (billingContext.replacedStripeSubscription) {
+		await expireReplacedPendingCustomerProducts({
+			ctx,
+			fullCustomer: billingContext.fullCustomer,
+			replacedStripeSubscriptionId:
+				billingContext.replacedStripeSubscription.id,
+		});
 	}
 
 	const persistedSchedule = await persistSetPlansSchedule({

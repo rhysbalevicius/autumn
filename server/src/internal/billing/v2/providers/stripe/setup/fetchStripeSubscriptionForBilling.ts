@@ -16,6 +16,7 @@ export interface StripeSubscriptionForBilling {
 	stripeSubscription?: StripeSubscriptionWithDiscounts;
 	/** Set when the linked subscription exists in Stripe but is terminal (canceled or incomplete_expired). */
 	canceledStripeSubscriptionId?: string;
+	canceledStripeSubscription?: Stripe.Subscription;
 	/** Set when the linked subscription belongs to a different Stripe customer.
 	 *  Only surfaced for flows allowed to proceed past that fault. */
 	mismatchedStripeSubscriptionId?: string;
@@ -110,7 +111,10 @@ export const fetchStripeSubscriptionForBilling = async ({
 	// A terminal sub carries no live billing state. Report it separately so each
 	// caller decides: abandon it (attach) or block Stripe writes (updateSubscription).
 	if (isTerminalStripeSubscription(sub)) {
-		return { canceledStripeSubscriptionId: subId };
+		return {
+			canceledStripeSubscriptionId: subId,
+			canceledStripeSubscription: sub,
+		};
 	}
 
 	return { stripeSubscription: sub as StripeSubscriptionWithDiscounts };
