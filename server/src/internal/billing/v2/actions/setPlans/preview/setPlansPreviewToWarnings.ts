@@ -13,6 +13,7 @@ import {
 } from "@autumn/shared";
 import type Stripe from "stripe";
 import {
+	cycleResetWarning,
 	intervalChangeWarning,
 	scheduledCancelWarning,
 } from "./liveSubscriptionChangeWarnings";
@@ -81,6 +82,7 @@ export const setPlansPreviewToWarnings = ({
 	deletedCustomerProducts,
 	outgoingCustomerProducts,
 	requestedProrationBehavior,
+	cycleResetAt,
 	features,
 	billingContext,
 	stripeBillingPlan,
@@ -93,6 +95,7 @@ export const setPlansPreviewToWarnings = ({
 	deletedCustomerProducts: FullCusProduct[];
 	outgoingCustomerProducts: FullCusProduct[];
 	requestedProrationBehavior?: BillingBehavior;
+	cycleResetAt?: number;
 	features: Feature[];
 	billingContext?: SubscriptionWarningContext;
 	stripeBillingPlan?: StripeBillingPlan;
@@ -118,6 +121,7 @@ export const setPlansPreviewToWarnings = ({
 				liveProcessorItems,
 				immediateItems: phases[0]?.processor_items ?? [],
 			}),
+			cycleResetWarning({ cycleResetAt }),
 		].filter(notNullish),
 		...unbilledUsageWarnings(unbilledUsageLineItems),
 		...removedUnmanagedItems({

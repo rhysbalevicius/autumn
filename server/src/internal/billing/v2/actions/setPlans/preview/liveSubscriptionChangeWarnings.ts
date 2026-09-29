@@ -64,6 +64,18 @@ export const scheduledCancelWarning = ({
 	return undefined;
 };
 
+export const cycleResetWarning = ({
+	cycleResetAt,
+}: {
+	cycleResetAt?: number;
+}): Warning | undefined =>
+	cycleResetAt === undefined
+		? undefined
+		: {
+				type: "cycle_reset",
+				message: `The billing cycle resets on ${formatMsToDate(cycleResetAt)}.`,
+			};
+
 const billingIntervals = (items: ProcessorItem[]) =>
 	new Set(
 		items
