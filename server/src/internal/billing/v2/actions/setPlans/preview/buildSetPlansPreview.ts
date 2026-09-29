@@ -82,6 +82,7 @@ export const buildSetPlansPreview = async ({
 					})
 				: undefined,
 			features: ctx.features,
+			stripeBillingPlan: billingPlan.stripe,
 		}),
 	};
 };

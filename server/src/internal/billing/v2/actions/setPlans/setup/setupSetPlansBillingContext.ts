@@ -250,6 +250,7 @@ export const setupSetPlansBillingContext = async ({
 		fullCustomer: billingContext.fullCustomer,
 		currentEpochMs: billingContext.currentEpochMs,
 		immediatePhaseProductContexts: billingContext.productContexts,
+		endsAt: params.ends_at,
 	});
 
 	const scheduledCustomPrices = scheduledPhaseContexts.flatMap((phase) =>
@@ -303,6 +304,7 @@ export const setupSetPlansBillingContext = async ({
 		immediatePhase,
 		futurePhases,
 		scheduledPhaseContexts,
+		endsAt: params.ends_at,
 	};
 
 	const { recurringActive } = resolveSetPlansRecurringProducts({
