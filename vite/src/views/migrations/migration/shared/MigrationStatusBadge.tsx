@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { statusLabel, waitingExplanation } from "./migrationStatus";
 
-const STATUS_INDICATORS: Record<
+export const STATUS_INDICATORS: Record<
 	MigrationStatus,
 	{ tone: StatusTone; glyph: StatusGlyph }
 > = {
