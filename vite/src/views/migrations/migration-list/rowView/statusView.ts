@@ -113,6 +113,13 @@ const draftSegments = (summary: MigrationListSummary): Segment[] => {
 		return [
 			{ kind: "would_change", value: dryRun.would_change },
 			{ kind: "would_fail", value: dryRun.would_fail },
+			{
+				kind: "untouched",
+				value: Math.max(
+					dryRun.previewed - dryRun.would_change - dryRun.would_fail,
+					0,
+				),
+			},
 		];
 	if (sample)
 		return [

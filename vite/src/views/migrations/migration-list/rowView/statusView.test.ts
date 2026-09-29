@@ -80,6 +80,31 @@ test("drafts show dry run, sample, or nothing", () => {
 	expect(sample.card?.legend).toEqual([{ kind: "sampled", value: 10 }]);
 });
 
+test("a dry run where few customers would change keeps the unchanged rest in the bar", () => {
+	const view = deriveStatusView({
+		status: "draft",
+		summary: {
+			customer_count: 100,
+			latest_run: null,
+			latest_dry_run: {
+				finished_at: FIXTURE_NOW,
+				previewed: 100,
+				would_change: 1,
+				would_fail: 0,
+			},
+			latest_sample: null,
+			queue_position: null,
+			last_activity: { kind: "dry_run", at: FIXTURE_NOW },
+		},
+		now: FIXTURE_NOW,
+	});
+	expect(view.bar.segments).toEqual([
+		{ kind: "would_change", value: 1 },
+		{ kind: "untouched", value: 99 },
+	]);
+	expect(view.card?.legend).toEqual([{ kind: "would_change", value: 1 }]);
+});
+
 test("completed is blue when clean and amber with the failed count", () => {
 	expect(pill("migration-legacy-free-to-hobby")).toEqual({
 		ring: { tone: "blue", fraction: 1 },
